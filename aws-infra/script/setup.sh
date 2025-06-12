@@ -11,12 +11,11 @@ curl -fsSL https://deb.nodesource.com/setup_18.x | bash -
 apt-get install -y nodejs
 
 # Create script directory
-mkdir -p /usr/local/bin
+mkdir -p /usr/local
 
-# Copy the MySQL check script to proper location
-#cd /tmp/scripts
-#cp check-mysql.sh /usr/local/bin/
-#chmod +x /usr/local/bin/check-mysql.sh
+cd /tmp/app
+cp ./api /usr/local
+
 
 # Wait for environment variable to be set
 max_attempts=30 
@@ -39,4 +38,38 @@ echo "DB_PRIVATE_IP is set to: $DB_PRIVATE_IP"
 # Wait for MySQL server to be ready
 echo "Waiting for MySQL server to be ready..."
 sleep 60
+
+cat > /etc/systemd/system/node.service << "EOF"
+[Unit]
+Description="Node.js API Service"
+After=network.target
+
+[Service]
+Type=simple
+WorkingDirectory=/usr/local/api
+Environment=DB_HOST=$(grep '^DB_PRIVATE_IP=' /etc/environment | cut -d= -f2- | tr -d '"')
+Environment=DB_PORT=3306
+Environment=DB_USER=sifat
+Environment=DB_PASSWORD=sifat
+Environment=DB_NAME=practice_app
+Environment=NODE_ENV=production
+Environment=PORT=4000
+ExecStartPre=/usr/bin/npm ci --prefix /usr/local/api --production
+ExecStart=/usr/bin/node /usr/local/api/server.js
+Restart=on-failure
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+Environment=PATH=/usr/bin:/usr/local/bin
+
+[Install]
+WantedBy=multi-user.target
+EOF
+
+
+systemctl daemon-reload
+systemctl enable node.service
+systemctl start node.service
+
+
 

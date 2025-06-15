@@ -13,8 +13,7 @@ apt-get install -y nodejs
 # Create script directory
 mkdir -p /usr/local
 
-cd /tmp/app
-cp ./api /usr/local
+cp /tmp/app/api /usr/local
 
 
 # Wait for environment variable to be set

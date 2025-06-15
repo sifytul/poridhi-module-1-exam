@@ -2,6 +2,10 @@ import pulumi
 import pulumi_aws as aws
 import os
 
+instance_type = "t2.micro"
+ami = "ami-01811d4912b4ccb26"
+key_name = "key-pair"
+
 # Create a VPC
 vpc = aws.ec2.Vpc(
     'nodejs-db-vpc',
@@ -180,10 +184,10 @@ chmod +x /usr/local/bin/mysql-setup.sh
 # Create EC2 Instance for DB with user data
 db = aws.ec2.Instance(
     'db-server',
-    instance_type='t2.small',
-    ami='ami-01811d4912b4ccb26',
+    instance_type=instance_type,
+    ami=ami,
     subnet_id=private_subnet.id,
-    key_name="key-pair",
+    key_name=key_name,
     vpc_security_group_ids=[db_security_group.id],
     user_data=generate_mysql_user_data(),
     user_data_replace_on_change=True,
@@ -213,8 +217,7 @@ apt-get install -y git
 echo "DB_PRIVATE_IP={db_private_ip}" >> /etc/environment
 source /etc/environment
 
-# Create script directory
-mkdir -p /usr/local/bin
+git clone https://github.com/sifytul/poridhi-module-1-exam.git /tmp/app
 
 # Create MySQL setup script
 cat > /usr/local/bin/setup.sh << 'EOL'
@@ -230,10 +233,10 @@ chmod +x /usr/local/bin/setup.sh
 # Update your Pulumi EC2 instance configurations
 nodejs = aws.ec2.Instance(
     'nodejs-server',
-    instance_type='t2.small',
-    ami='ami-01811d4912b4ccb26',  # Update with correct Ubuntu AMI ID
+    instance_type=instance_type,
+    ami=ami,  # Update with correct Ubuntu AMI ID
     subnet_id=public_subnet.id,
-    key_name="key-pair",
+    key_name=key_name,
     vpc_security_group_ids=[nodejs_security_group.id],
     associate_public_ip_address=True,
     user_data=pulumi.Output.all(db.private_ip).apply(

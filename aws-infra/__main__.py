@@ -110,6 +110,12 @@ nodejs_security_group = aws.ec2.SecurityGroup(
             to_port=7000,
             cidr_blocks=['0.0.0.0/0'],
         ),
+        aws.ec2.SecurityGroupIngressArgs(
+            protocol='tcp',
+            from_port=4000,
+            to_port=4000,
+            cidr_blocks=['0.0.0.0/0'],
+        ),
     ],
     egress=[
         aws.ec2.SecurityGroupEgressArgs(
@@ -214,7 +220,7 @@ apt-get update
 apt-get install -y git
 
 # Set environment variable for DB IP
-echo "DB_PRIVATE_IP={db_private_ip}" >> /etc/environment
+echo "DB_HOST={db_private_ip}" >> /etc/environment
 source /etc/environment
 
 git clone https://github.com/sifytul/poridhi-module-1-exam.git /tmp/app
@@ -262,13 +268,13 @@ def create_config_file(all_ips):
     config_content = f"""Host nodejs-server
     HostName {all_ips[0]}
     User ubuntu
-    IdentityFile ~/.ssh/db-cluster.id_rsa
+    IdentityFile ~/.ssh/{key_name}.id_rsa
 
 Host db-server
     ProxyJump nodejs-server
     HostName {all_ips[1]}
     User ubuntu
-    IdentityFile ~/.ssh/db-cluster.id_rsa
+    IdentityFile ~/.ssh/{key_name}.id_rsa
 """
     
     config_path = os.path.expanduser("~/.ssh/config")
@@ -280,3 +286,10 @@ all_ips = [nodejs.public_ip, db.private_ip]
 
 # Create the config file with the IPs once the instances are ready
 pulumi.Output.all(*all_ips).apply(create_config_file)
+
+'''
++ db_private_ip    : "10.0.2.16"
+  + nodejs_private_ip: "10.0.1.242"
+  + nodejs_public_ip : "13.215.203.135"
+
+'''

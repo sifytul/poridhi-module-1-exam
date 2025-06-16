@@ -12,10 +12,27 @@ apt-get install -y mysql-server
 sed -i 's/bind-address.*=.*/bind-address = 0.0.0.0/' /etc/mysql/mysql.conf.d/mysqld.cnf
 
 # Create database and user
-mysql -e "CREATE DATABASE practice_app;"
-mysql -e "CREATE USER 'sifat'@'%' IDENTIFIED BY 'sifat';"
-mysql -e "GRANT ALL PRIVILEGES ON practice_app.* TO 'sifat'@'%';"
-mysql -e "FLUSH PRIVILEGES;"
+mysql -e "
+CREATE DATABASE IF NOT EXISTS practice_app;
+CREATE USER 'sifat'@'%' IDENTIFIED BY 'sifat';
+GRANT ALL PRIVILEGES ON practice_app.* TO 'sifat'@'%';
+FLUSH PRIVILEGES;
+"
+mysql -e "
 
+USE practice_app;
+
+CREATE TABLE IF NOT EXISTS users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    email VARCHAR(100) NOT NULL UNIQUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+INSERT INTO users (name, email) VALUES
+    ('John Doe', 'john.doe@example.com'),
+    ('Jane Smith', 'jane.smith@example.com'),
+    ('Bob Johnson', 'bob.johnson@example.com');
+"
 # Restart MySQL
 systemctl restart mysql

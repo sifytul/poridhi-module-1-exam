@@ -13,26 +13,26 @@ apt-get install -y nodejs
 # Create script directory
 mkdir -p /usr/local
 
-cp /tmp/app/api /usr/local
+cp -r /tmp/app/api /usr/local
 
 
 # Wait for environment variable to be set
 max_attempts=30 
 attempt=0
 
-while [ -z "$DB_PRIVATE_IP" ]; do
+while [ -z "$DB_HOST" ]; do
     if [ $attempt -ge $max_attempts ]; then
-        echo "Timeout waiting for DB_PRIVATE_IP to be set"
+        echo "Timeout waiting for DB_HOST to be set"
         exit 1
     fi
-    echo "Waiting for DB_PRIVATE_IP environment variable..."
+    echo "Waiting for DB_HOST environment variable..."
     attempt=$((attempt + 1))
     sleep 10
     # Source the environment file only once per iteration
     source /etc/environment
 done
 
-echo "DB_PRIVATE_IP is set to: $DB_PRIVATE_IP"
+echo "DB_HOST is set to: $DB_HOST"
 
 # Wait for MySQL server to be ready
 echo "Waiting for MySQL server to be ready..."
@@ -46,7 +46,7 @@ After=network.target
 [Service]
 Type=simple
 WorkingDirectory=/usr/local/api
-Environment=DB_HOST=$(grep '^DB_PRIVATE_IP=' /etc/environment | cut -d= -f2- | tr -d '"')
+EnvironmentFile=/etc/environment
 Environment=DB_PORT=3306
 Environment=DB_USER=sifat
 Environment=DB_PASSWORD=sifat
@@ -54,7 +54,7 @@ Environment=DB_NAME=practice_app
 Environment=NODE_ENV=production
 Environment=PORT=4000
 ExecStartPre=/usr/bin/npm ci --prefix /usr/local/api --production
-ExecStart=/usr/bin/node /usr/local/api/server.js
+ExecStart=/usr/bin/node server.js
 Restart=on-failure
 RestartSec=10
 StandardOutput=syslog

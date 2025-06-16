@@ -13,6 +13,7 @@ app.use(express.urlencoded({ extended: true }));
 app.use(cors());
 app.use(cookieParser());
 app.use(helmet());
+app.use(express.static(path.join(__dirname, 'public')));
 
 // MySQL Connection
 const pool = mysql.createPool({
@@ -44,6 +45,9 @@ pool.getConnection()
   });
 
 // route is use
+app.get('/', (req, res) => {
+  res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
 
 app.get("/health", (req, res) => {
   res.status(200).json({message: "Everything is allright"});

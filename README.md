@@ -17,8 +17,8 @@ sudo apt update && sudo apt install -y python3.8-venv
 aws configure
 
 # Create EC2 key pair
-aws ec2 create-key-pair --key-name key-pair --query 'KeyMaterial' --output text > ~/.ssh/key-pair.pem 
-chmod 400 ~/.ssh/key-pair.pem
+aws ec2 create-key-pair --key-name key-pair --query 'KeyMaterial' --output text > ~/.ssh/key-pair.id_rsa 
+chmod 400 ~/.ssh/key-pair.id_rsa
 ```
 
 ## **3. Repository Setup**
@@ -52,6 +52,25 @@ pulumi up --yes
 pulumi stack output
 ```
 
+
+## **7. Test**
+```bash
+# collect node_instance_public_ip and replace in curl
+pulumi stack output nodejs_public_ip
+
+
+# health endpoint
+curl -s <node_instance_public_ip>:4000/health | jq
+
+# users endpoint
+curl -s <node_instance_public_ip>:4000/users | jq
+
+
+```
+
+
+
+
 ## **Post-Deployment**
 1. **Verify Resources** in AWS Console
 2. **Save Stack Outputs** for application configuration
@@ -59,11 +78,6 @@ pulumi stack output
    ```bash
    pulumi destroy --yes
    ```
-
-## **Troubleshooting**
-- **Python Errors**: Ensure virtualenv is activated
-- **AWS Permissions**: Verify IAM user has proper rights
-- **Pulumi Version**: Check with `pulumi version`
 
 ## **Cleanup**
 ```bash
